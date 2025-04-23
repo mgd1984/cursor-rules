@@ -1,6 +1,45 @@
-# Cursor Rules Template
+# Cursor Rules Configuration
 
-A comprehensive collection of Cursor Rules organized by category, designed to provide guidance for working with a Next.js/T3/TypeScript application.
+This directory contains configuration and documentation for integrating the Cursor Rules MCP server via gitmcp.io.
+
+## Configuration
+
+The `.cursor/mcp.json` file defines custom MCP servers. We added:
+
+```json
+{
+  "mcpServers": {
+    "Cursor Rules": {
+      "url": "https://gitmcp.io/mgd1984/cursor-rules"
+    }
+  }
+}
+```
+
+This tells the Cursor chat integration to fetch rules from the `Cursor Rules` server hosted on gitmcp.io.
+
+## Rebuilding the Ruleset
+
+To rebuild or refresh the ruleset locally, run the following commands in your project root:
+
+```bash
+# Clone the rules repository
+git clone --depth=1 https://gitmcp.io/mgd1984/cursor-rules.git temp
+
+# Copy the rules into the .cursor folder
+cp -R temp/.cursor/rules .cursor/rules
+
+# Clean up the temporary clone
+rm -rf temp
+```
+
+Alternatively, if you have a CLI available, you can use:
+
+```bash
+cursor mcp fetch --server "Cursor Rules"
+```
+
+Ensure to commit any updated rules into your repository to keep them in sync.
 
 ## Overview
 
