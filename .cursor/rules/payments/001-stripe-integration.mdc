@@ -1,5 +1,142 @@
 ---
-description:
-globs:
+description: 
+globs: 
 alwaysApply: false
 ---
+# Stripe Integration Best Practices
+
+> Based on [Theo Browne's Stripe recommendations](mdc:https:/github.com/t3dotgg/stripe-recommendations)
+
+## Core Philosophy
+
+The biggest issue with Stripe is the "split brain" problem - where payment state exists in both Stripe and your database, leading to race conditions and inconsistencies. To avoid this:
+
+- Use a single source of truth by syncing Stripe data to a KV store
+- Create a `syncStripeDataToKV(customerId: string)` function for all Stripe operations
+- Always create a Stripe customer BEFORE starting checkout
+- Use a KV store (Redis, Upstash, etc.) to store the mapping between your userId and Stripe customerId
+
+## Recommended Flow
+
+1. **FRONTEND:** "Subscribe" button calls `generate-stripe-checkout` endpoint
+2. **BACKEND:** Create/retrieve Stripe customer for the user
+3. **BACKEND:** Store binding between Stripe's `customerId` and your app's `userId` in KV
+4. **BACKEND:** Create a checkout session with the `customerId`
+5. **USER:** Completes payment and redirects to `/success` in your app
+6. **BACKEND:** On success page load, sync Stripe data to KV
+7. **BACKEND:** Process all relevant webhook events by calling the same sync function
+
+## Implementation Pattern
+
+### Customer Creation
+
+```ts
+// Create a new Stripe customer if this user doesn't have one
+if (!stripeCustomerId) {
+  const newCustomer = await stripe.customers.create({
+    email: user.email,
+    metadata: {
+      userId: user.id, // CRITICAL: Store your userId in metadata
+    },
+  });
+
+  // Store the relation in KV
+  await kv.set(`stripe:user:${user.id}`, newCustomer.id);
+  stripeCustomerId = newCustomer.id;
+}
+```
+
+### Data Sync Function
+
+```ts
+export async function syncStripeDataToKV(customerId: string) {
+  // Fetch latest subscription data from Stripe
+  const subscriptions = await stripe.subscriptions.list({
+    customer: customerId,
+    limit: 1,
+    status: "all",
+    expand: ["data.default_payment_method"],
+  });
+
+  if (subscriptions.data.length === 0) {
+    const subData = { status: "none" };
+    await kv.set(`stripe:customer:${customerId}`, subData);
+    return subData;
+  }
+
+  // Extract and store relevant subscription data
+  const subscription = subscriptions.data[0];
+  const subData = {
+    subscriptionId: subscription.id,
+    status: subscription.status,
+    priceId: subscription.items.data[0].price.id,
+    currentPeriodEnd: subscription.current_period_end,
+    currentPeriodStart: subscription.current_period_start,
+    cancelAtPeriodEnd: subscription.cancel_at_period_end,
+    paymentMethod: /* extract payment method details */,
+  };
+
+  await kv.set(`stripe:customer:${customerId}`, subData);
+  return subData;
+}
+```
+
+### Success Endpoint
+
+```ts
+// Eagerly sync Stripe data when user returns to success page
+export async function GET(req: Request) {
+  const user = auth(req);
+  const stripeCustomerId = await kv.get(`stripe:user:${user.id}`);
+  
+  if (!stripeCustomerId) {
+    return redirect("/");
+  }
+
+  await syncStripeDataToKV(stripeCustomerId);
+  return redirect("/dashboard");
+}
+```
+
+### Webhook Handling
+
+```ts
+// Process webhook events by calling the same sync function
+async function processEvent(event: Stripe.Event) {
+  if (!allowedEvents.includes(event.type)) return;
+
+  const { customer: customerId } = event?.data?.object as { customer: string };
+
+  if (typeof customerId !== "string") {
+    throw new Error(`[STRIPE HOOK] ID isn't string. Event type: ${event.type}`);
+  }
+
+  return await syncStripeDataToKV(customerId);
+}
+```
+
+## Pro Tips
+
+1. **DISABLE "CASH APP PAY"** - Often used by scammers and leads to high cancellation rates
+2. **ENABLE "Limit customers to one subscription"** - Prevents race conditions and duplicate subscriptions
+3. **Use a standardized type for Stripe subscription data** in your application
+4. **Don't parse checkout session IDs** - Always use the customer ID as your key reference
+5. **Respond to webhooks BEFORE processing** to avoid Stripe's retry mechanism
+
+## Key Events to Track
+
+```ts
+const allowedEvents: Stripe.Event.Type[] = [
+  "checkout.session.completed",
+  "customer.subscription.created",
+  "customer.subscription.updated",
+  "customer.subscription.deleted",
+  "customer.subscription.paused",
+  "customer.subscription.resumed",
+  "invoice.paid",
+  "invoice.payment_failed",
+  "payment_intent.succeeded",
+  "payment_intent.payment_failed",
+  // Additional relevant events...
+];
+```
