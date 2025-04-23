@@ -85,3 +85,10 @@ alwaysApply: false
 - See [Naming & Tailwind](mdc:.cursor/rules/preferences/003-naming-tailwind.mdc) for styling practices
 - See [Performance](mdc:.cursor/rules/performance/001-performance.mdc) for optimization techniques
 - See [Workflow Preferences](mdc:.cursor/rules/workflow/001-workflow-preferences.mdc) for process preferences
+
+## Payment Integration
+- Stripe integration using a single source of truth pattern
+- KV store (Redis/Upstash) to map users to Stripe customers
+- Single `syncStripeDataToKV` function for all Stripe operations
+- Webhook handling with proper event tracking
+- Consistent response patterns for checkout flows

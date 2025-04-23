@@ -27,6 +27,9 @@ For a comprehensive overview of all standards and patterns, see:
 - **Forms**
   - [001-forms.mdc](mdc:.cursor/rules/forms/001-forms.mdc) - Form implementation with React Hook Form and Zod
 
+- **Payments**
+  - [001-stripe-integration.mdc](mdc:.cursor/rules/payments/001-stripe-integration.mdc) - Best practices for implementing Stripe payments
+
 - **Performance**
   - [001-performance.mdc](mdc:.cursor/rules/performance/001-performance.mdc) - Performance optimization techniques
 
