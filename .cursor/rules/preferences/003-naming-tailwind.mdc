@@ -1,0 +1,48 @@
+---
+description: Naming conventions and Tailwind CSS best practices
+globs: **/*.tsx, **/*.jsx, **/*.css
+alwaysApply: false
+---
+# Naming Conventions
+
+- React components: PascalCase (e.g., FeatureCard, DetailView)
+- Type/Interface names: PascalCase (e.g., UserData, RequestOptions)
+- File names (Components & Types): PascalCase (e.g., FeatureCard.tsx, UserData.ts)
+- File names (Other - e.g., utils, routes, hooks): kebab-case (e.g., dom-utils.ts, user-profile.tsx, use-user-data.ts)
+- Custom hooks: camelCase with "use" prefix (e.g., useData, useFeature)
+- Variables & Functions: camelCase (e.g., itemCount, getUserProfile)
+- API endpoints (tRPC procedures): camelCase (e.g., getData, createItem)
+- Database tables/columns: snake_case (e.g., data_items, user_profiles, created_at)
+- CSS classes: Use Tailwind utility classes directly. Avoid custom class names unless abstracting complex variants or for JS hooks.
+- Event Handlers: Prefix with "handle" (e.g., handleSubmit, handleChange)
+- Boolean variables/props: Prefix with "is", "has", or "should" (e.g., isLoading, hasError, shouldShowDetails)
+- Constants: SCREAMING_SNAKE_CASE (e.g., MAX_ITEMS, API_TIMEOUT)
+- Route parameters: camelCase in code (e.g., `params.userId`), kebab-case in URL paths (`/users/[userId]/settings`)
+
+# Tailwind Best Practices
+
+- Use Tailwind utility classes for styling instead of custom CSS
+- Extract common pattern combinations into reusable components
+- Use Tailwind's responsive prefixes (sm:, md:, lg:) for responsive design
+- Create consistent spacing using the spacing scale (m-4, p-6, gap-2, etc.)
+- Use the clsx or cn utility for conditional classes
+- Define color scheme in tailwind.config.js and reference with configured names
+- Avoid custom CSS except for complex animations or third-party component integration
+- Use the @apply directive in a global CSS file for repeated patterns
+- Keep className strings organized by category (layout, typography, color, interaction, etc.)
+- Define common class combinations in the utilities.ts file:
+
+```ts
+// Example utilities.ts
+export const buttonClasses = {
+  base: "rounded font-medium transition-colors",
+  primary: "bg-primary text-white hover:bg-primary-dark",
+  secondary: "bg-gray-200 text-gray-800 hover:bg-gray-300",
+  danger: "bg-red-600 text-white hover:bg-red-700",
+  sizes: {
+    sm: "px-2 py-1 text-sm",
+    md: "px-4 py-2",
+    lg: "px-6 py-3 text-lg"
+  }
+};
+```

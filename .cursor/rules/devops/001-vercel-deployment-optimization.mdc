@@ -1,0 +1,124 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Vercel Deployment, Optimization & Cost Management
+
+## Overview
+This guide provides actionable strategies for deploying Next.js applications on Vercel effectively, focusing on performance, avoiding common pitfalls, and managing costs.
+
+## Rendering & Caching Strategies
+
+### 1. Choose the Right Rendering Mode
+- **Problem**: Overuse of `export const dynamic = 'force-dynamic'` or uncached `fetch` calls can lead to unnecessary Serverless Function executions and increased costs/latency. Accidental dynamic rendering can occur due to dynamic functions (`headers()`, `cookies()`) or uncached data fetches.
+- **Solutions**:
+  - **Static Generation (SSG)**: Default for pages without dynamic functions/data. Fastest and cheapest.
+  - **Incremental Static Regeneration (ISR)**: Use `revalidate` option in `fetch` or page config for data that changes periodically. Balances freshness and performance.
+  - **Dynamic Rendering**: Use only when necessary (e.g., highly personalized content based on cookies/headers).
+- **Best Practice**: Default to static/ISR. Audit pages for accidental dynamic rendering triggers. Use route segment config (`export const dynamic = 'force-dynamic'; export const revalidate = 60;`) for explicit control.
+- **See Also**: [memory/001-data-state.mdc](mdc:.cursor/rules/memory/001-data-state.mdc) for data fetching patterns.
+
+### 2. Leverage Data Caching
+- **Problem**: Frequent fetching of the same data increases load and cost. Cache misses negate benefits.
+- **Solutions**:
+  - Use `fetch` caching (automatic in App Router, controllable via `cache` option: `'force-cache'`, `'no-store'`, or `revalidate`).
+  - Use React `cache()` for memoizing data requests across components within a render.
+  - Use `unstable_cache` for more granular, key-based caching outside of `fetch`.
+  - Implement cache invalidation (`revalidateTag`, `revalidatePath`) when underlying data changes.
+- **Pitfall**: Ensure consistent cache tagging and invalidation logic. Mismanaged caches lead to stale data.
+- **See Also**: [performance/001-performance.mdc](mdc:.cursor/rules/performance/001-performance.mdc)
+
+### 3. Cache Public Endpoints/Assets
+- **Problem**: Small, frequently accessed static files (e.g., `sitemap.xml`, `robots.txt`) served without caching can incur significant bandwidth costs.
+- **Solution**: Ensure static resources have long `Cache-Control` headers (Vercel usually handles this well for `/public` folder) or use ISR/SSG for generated files. Use `robots.txt` or middleware to manage crawler access.
+
+## Asset & Image Optimization
+
+### 1. Manage Static Assets (Bandwidth Costs)
+- **Problem**: Large files (videos, PDFs, high-res images) hosted in `/public` are served via Vercel's CDN, incurring high bandwidth costs.
+- **Solution**: Use dedicated object storage (e.g., [UploadThing](mdc:https:/uploadthing.com), Vercel Blob, AWS S3, Cloudflare R2) for large assets.
+- **Best Practice**: Only keep small, essential static assets (favicons, logos) in `/public`. Reference object storage URLs for other assets.
+- **See Also**: Tech stack in [architecture/001-project-overview.mdc](mdc:.cursor/rules/architecture/001-project-overview.mdc) (mentions UploadThing).
+
+### 2. Configure Image Optimization (`next/image`)
+- **Problem**: Costs $5 per 1000 unique source images optimized (after free tier). Incorrect `remotePatterns` configuration allows potential abuse by third parties requesting optimization of arbitrary images.
+- **Solutions**:
+  - Use `<Image />` component for automatic optimization.
+  - **Crucially**: Configure `remotePatterns` in `next.config.js` to **only allow specific, trusted hostnames and paths**. Avoid overly permissive patterns like `/**`.
+  - Example good pattern: `remotePatterns: [{ protocol: 'https', hostname: 'images.example.com', pathname: '/profiles/**' }]`
+  - Consider alternative image CDNs (Cloudinary, Imgix) if costs are high or more features are needed.
+- **See Also**: [performance/001-performance.mdc](mdc:.cursor/rules/performance/001-performance.mdc)
+
+## Serverless Function Optimization & Pitfalls
+
+### 1. Optimize Function Execution Time
+- **Problem**: Inefficient code (slow queries, blocking operations) increases execution duration and costs. Monolithic functions with large dependencies suffer from slower cold starts.
+- **Solutions**:
+  - Optimize database queries (use indexes, avoid N+1). See [performance/001-performance.mdc](mdc:.cursor/rules/performance/001-performance.mdc).
+  - Use `Promise.all()` for concurrent independent async operations.
+  - Move long-running tasks (>> 5-10s) to background job queues (e.g., Inngest, Trigger.dev). Check [architecture/001-project-overview.mdc](mdc:.cursor/rules/architecture/001-project-overview.mdc) if used.
+  - Tree-shake dependencies. Dynamically `import()` heavy modules where appropriate.
+  - Consider Vercel Edge Functions for low-latency, short-lived tasks (check constraints).
+
+### 2. Prevent Uncontrolled Execution / Loops
+- **Problem**: Uncaught exceptions in API routes/server actions can trigger retries. Unbounded recursion or infinite loops can exhaust quotas and spike costs rapidly.
+- **Solutions**:
+  - **Robust Error Handling**: Wrap all API handlers/actions/`getServerSideProps` logic in `try/catch`. Log errors effectively. See [errors/001-errors.mdc](mdc:.cursor/rules/errors/001-errors.mdc).
+  - **Idempotency**: Design mutations to be safe if retried.
+  - **Rate Limiting/Circuit Breakers**: Implement on critical endpoints.
+  - **Termination Conditions**: Ensure all loops and recursive functions have clear exit conditions. Convert deep recursion to iteration if possible.
+
+### 3. Handle Environment Variables Correctly
+- **Problem**: Using runtime environment variables (`process.env.MY_VAR`) in code executed at build time (e.g., top-level of React components) can lead to unexpected behavior or expose server-side secrets to the client bundle.
+- **Solution**: Use `NEXT_PUBLIC_` prefix for variables needed in the browser. Access server-only variables within server components, API routes, or `getServerSideProps`/`getStaticProps`. Check Vercel project settings for variable configuration per environment.
+
+## Security & Access Control
+
+### 1. Mitigate DDoS and Bot Abuse
+- **Problem**: Unprotected endpoints (file uploads, forms, compute-intensive APIs) can be exploited, leading to high costs or service disruption.
+- **Solution**: Implement rate limiting (e.g., using `@upstash/ratelimit`). Consider Vercel Firewall or external WAFs (like Cloudflare) for more advanced protection.
+
+### 2. Secure Middleware
+- **Problem**: Middleware executes on every request matching its path, potentially increasing latency and cost if complex or poorly optimized. It can also be a security choke-point.
+- **Solution**: Keep middleware logic lean. Use conditional execution where possible. Ensure proper authentication/authorization checks are performed.
+
+## Cost Monitoring & Management
+
+### 1. Enable Spend Management
+- **Best Practice**: Enable Vercel's **Spend Management** feature (Pro/Enterprise plans) to set hard budget limits and prevent runaway costs.
+- **Caution**: Hitting limits will pause deployments and potentially cause downtime until limits are increased or the billing cycle resets.
+
+### 2. Set Up External Monitoring & Alerts
+- **Problem**: Vercel's built-in alerts might not be sufficient or timely.
+- **Solution**: Configure external monitoring (e.g., using cloud provider billing APIs, third-party services) for usage trends and alerts *before* hitting hard limits.
+- **Best Practice**: Integrate cost checks/alerts into CI/CD pipeline (e.g., fail PR if estimated cost impact exceeds threshold).
+
+### 3. Understand Key Cost Drivers
+- Bandwidth (CDN & Function egress)
+- Serverless Function Execution (GB-hours)
+- Image Optimizations (Source images)
+- Web Analytics (Events)
+- Concurrent Builds
+
+## Troubleshooting
+- Use `vercel build` and `vercel dev` locally to replicate Vercel environment.
+- Check Vercel deployment logs for build errors and runtime function logs.
+- Analyze Vercel's usage dashboards to identify cost spikes.
+
+## Deprecated Patterns
+- Avoid default Next.js body parsers that buffer large uploads in memory for Serverless Functions; stream requests or use edge functions if possible.
+- Document any project-specific deprecated patterns related to Vercel deployment in the main project README and mark relevant code with `@deprecated`.
+
+## Implementation Checklist
+- [ ] Use object storage for large assets (check `[/public`](mdc:public))
+- [ ] Review and restrict image optimization `remotePatterns` in `[next.config.js](mdc:next.config.js)`
+- [ ] Optimize database queries & implement concurrency in API routes/actions
+- [ ] Implement appropriate caching strategies (fetch, `cache`, `unstable_cache`, ISR)
+- [ ] Review rendering strategy (`dynamic`, `revalidate`) for key pages/layouts
+- [ ] Implement robust error handling in all server-side code ([errors/001-errors.mdc](mdc:.cursor/rules/errors/001-errors.mdc))
+- [ ] Add rate limiting to public-facing mutation endpoints
+- [ ] Check environment variable usage (`NEXT_PUBLIC_`)
+- [ ] Set up Vercel spend management limits and alerts
+- [ ] Consider external monitoring / CI cost checks
+

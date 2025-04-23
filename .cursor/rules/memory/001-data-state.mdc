@@ -1,0 +1,148 @@
+---
+description: Data fetching patterns and state management approaches
+globs: **/*.ts, **/*.tsx, **/api/**, **/hooks/**
+alwaysApply: false
+---
+# Data Fetching
+
+- Use tRPC with React Query for data fetching in client components
+- Structure API queries and mutations according to entity types (locations, inspections, roof elements, etc.)
+- Follow these patterns for client data fetching:
+  - Define query keys in a structured manner (e.g., ['feature-access', featureKey])
+  - Implement query invalidation for data mutations
+  - Use type inference with RouterInputs and RouterOutputs for type safety
+  - Extract API calls to dedicated hooks in the `/hooks` directory
+
+```ts
+// Example custom hook with React Query and tRPC
+export function useFeatureAccess(featureKey: string) {
+  const { data: hasAccess, isLoading, error } = useQuery({
+    queryKey: ['feature-access', featureKey],
+    queryFn: async () => {
+      return getFeatureAccessClient(featureKey);
+    },
+    // Keep the result for 5 minutes
+    staleTime: 1000 * 60 * 5,
+  });
+
+  return {
+    hasAccess: hasAccess ?? false,
+    isLoading,
+    error,
+  };
+}
+```
+
+- Implement optimistic updates for better UX in mutating operations:
+
+```ts
+// Example tRPC mutation with React Query
+const createPost = api.post.create.useMutation({
+  onSuccess: async () => {
+    // Invalidate queries to refetch data
+    await utils.post.invalidate();
+    setName("");
+  },
+});
+```
+
+- For server components, use the api helper from server.ts with RSC pattern:
+
+```ts
+// Example server component data fetching
+async function fetchSubscriptionData(organizationId: string) {
+  try {
+    const response = await getOrganizationSubscription(organizationId);
+    // Process data...
+    return subscriptionData;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return null;
+  }
+}
+```
+
+- Always handle loading, error, and empty states explicitly
+- Use React Suspense boundaries for loading states in RSC
+- Set appropriate staleTime for cache management (default: 30 seconds)
+
+# State Management
+
+- Use React's useState for component-local state
+- Use React Context via providers for shared application state:
+  - `OrganizationProvider` for organization data
+  - Create custom hooks to access context (e.g., `useOrganizationId()`)
+- For complex custom hooks, follow this pattern:
+
+```ts
+export function useAgent(options?: UseAgentOptions): UseAgentReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [data, setData] = useState<AgentResponse | null>(null);
+  const [isStreaming, setIsStreaming] = useState(false);
+  
+  // Request ref for cancellation
+  const requestRef = useRef<boolean>(false);
+
+  const runQuery = async (request: AgentRequest) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await apiCall(request);
+      setData(response);
+      options?.onSuccess?.(response);
+      return response;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      setError(error);
+      options?.onError?.(error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  return {
+    runQuery,
+    isLoading,
+    error,
+    data,
+    // Additional state and methods...
+  };
+}
+```
+
+- Use reducer pattern (useReducer) for complex state logic:
+
+```ts
+// Example reducer pattern
+type State = {
+  status: 'idle' | 'loading' | 'success' | 'error';
+  data: any[];
+  error: Error | null;
+};
+
+type Action = 
+  | { type: 'FETCH_START' }
+  | { type: 'FETCH_SUCCESS'; payload: any[] }
+  | { type: 'FETCH_ERROR'; payload: Error };
+
+const reducer = (state: State, action: Action): State => {
+  switch (action.type) {
+    case 'FETCH_START':
+      return { ...state, status: 'loading', error: null };
+    case 'FETCH_SUCCESS':
+      return { ...state, status: 'success', data: action.payload };
+    case 'FETCH_ERROR':
+      return { ...state, status: 'error', error: action.payload };
+    default:
+      return state;
+  }
+};
+```
+
+- Create custom hook abstractions for repeated state patterns
+- Avoid prop drilling by organizing components thoughtfully
+- Keep state as close as possible to where it's used
+- For form state, use React Hook Form with Zod validation

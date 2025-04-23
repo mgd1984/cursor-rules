@@ -1,0 +1,17 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Security Considerations
+
+- Always validate user input on the server
+- Use proper authentication for protecting routes
+- Implement proper authorization checks for data access
+- Sanitize data before displaying it to prevent XSS
+- Use environment variables for sensitive information
+- Implement CSRF protection for forms
+- Use Content Security Policy (CSP) headers
+- Set secure and HttpOnly flags on cookies
+- Validate and sanitize URL parameters and query strings
+- Implement rate limiting for API endpoints

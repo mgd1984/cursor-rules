@@ -1,0 +1,76 @@
+---
+description: Code style guidelines and component structure
+globs: **/*.ts, **/*.tsx", **/*.js", **/*.jsx
+alwaysApply: false
+---
+# Code Style Guidelines
+
+- Use TypeScript interfaces to define props and data structures
+- Use functional components with React hooks
+- Prefer explicit type annotations over inferred types
+- Use camelCase for variables and functions, PascalCase for components, types, and interfaces
+- Prefer arrow functions for component definitions and callbacks
+- Use async/await for asynchronous operations
+- Organize imports: React imports first, then external libraries, then internal modules
+- Use relative imports for files in the same directory, absolute imports (with @/ prefix) otherwise
+- Prefer destructuring for props and objects
+- Always use strict equality (===) instead of loose equality (==)
+- Use early returns to reduce nesting and improve readability
+- Define interface and type exports at the bottom of component files when specific to that component
+- Keep component files under 250 lines; extract complex logic to hooks or utilities
+
+## Component Structure
+
+- Props interface at the top of the file
+- Destructure props in function signature
+- Default values in function signature or in a defaultProps object
+- Helper functions/JSX defined inside the component but before the return statement
+- Return JSX wrapped in parentheses
+- Export as named export AND default export at the bottom
+- Examples:
+
+```tsx
+interface ButtonProps {
+  variant?: 'primary' | 'secondary' | 'danger';
+  size?: 'sm' | 'md' | 'lg';
+  isLoading?: boolean;
+  onClick?: () => void;
+  children: React.ReactNode;
+}
+
+export const Button = ({ 
+  variant = 'primary',
+  size = 'md',
+  isLoading = false,
+  onClick,
+  children 
+}: ButtonProps) => {
+  const handleClick = () => {
+    if (!isLoading && onClick) {
+      onClick();
+    }
+  };
+  
+  return (
+    <button 
+      className={clsx(
+        'rounded font-medium',
+        variant === 'primary' && 'bg-blue-600 text-white',
+        variant === 'secondary' && 'bg-gray-200 text-gray-800',
+        variant === 'danger' && 'bg-red-600 text-white',
+        size === 'sm' && 'px-2 py-1 text-sm',
+        size === 'md' && 'px-4 py-2',
+        size === 'lg' && 'px-6 py-3 text-lg',
+        isLoading && 'opacity-70 cursor-not-allowed'
+      )}
+      onClick={handleClick}
+      disabled={isLoading}
+    >
+      {isLoading ? <Spinner className="mr-2" /> : null}
+      {children}
+    </button>
+  );
+};
+
+export default Button;
+```

@@ -1,0 +1,22 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Commit Guidelines
+
+- Write descriptive commit messages
+- Follow the conventional commits format:
+  - feat: New feature
+  - fix: Bug fix
+  - docs: Documentation changes
+  - style: Code style changes (formatting, etc.)
+  - refactor: Code changes that neither fix bugs nor add features
+  - perf: Performance improvements
+  - test: Add or modify tests
+  - chore: Changes to build process or tools
+- Include ticket/issue numbers in commit messages when applicable
+- Keep commits focused on a single feature or fix
+- Squash multiple related commits before merging to main branch
+
+Remember to maintain consistent branding and user experience according to the project's design guidelines.

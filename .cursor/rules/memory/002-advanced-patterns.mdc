@@ -1,0 +1,130 @@
+---
+description: Advanced component patterns and commit message guidelines
+globs: **/*.ts, **/*.tsx, **/*.jsx, **/*.js
+alwaysApply: false
+---
+# Advanced Patterns
+
+## Compound Components
+
+Use compound components for related UI elements:
+
+```tsx
+// Example compound components
+const Tabs = ({ children, defaultValue }: TabsProps) => {
+  const [activeTab, setActiveTab] = useState(defaultValue);
+  return (
+    <TabsContext.Provider value={{ activeTab, setActiveTab }}>
+      {children}
+    </TabsContext.Provider>
+  );
+};
+
+Tabs.List = ({ children }: TabsListProps) => {
+  return <div className="flex border-b">{children}</div>;
+};
+
+Tabs.Trigger = ({ value, children }: TabsTriggerProps) => {
+  const { activeTab, setActiveTab } = useTabsContext();
+  return (
+    <button
+      className={clsx(
+        "px-4 py-2",
+        activeTab === value && "border-b-2 border-primary"
+      )}
+      onClick={() => setActiveTab(value)}
+    >
+      {children}
+    </button>
+  );
+};
+
+Tabs.Content = ({ value, children }: TabsContentProps) => {
+  const { activeTab } = useTabsContext();
+  if (activeTab !== value) return null;
+  return <div className="py-4">{children}</div>;
+};
+```
+
+## Render Props
+
+Use render props for flexible component APIs:
+
+```tsx
+// Example render props
+export const DataFetcher = ({ 
+  fetchFn, 
+  children 
+}: { 
+  fetchFn: () => Promise<any>, 
+  children: (state: { 
+    data: any | null; 
+    isLoading: boolean; 
+    error: Error | null;
+  }) => React.ReactNode
+}) => {
+  const [state, setState] = useState({
+    data: null,
+    isLoading: true,
+    error: null
+  });
+  
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        const data = await fetchFn();
+        setState({ data, isLoading: false, error: null });
+      } catch (error) {
+        setState({ data: null, isLoading: false, error });
+      }
+    };
+    fetch();
+  }, [fetchFn]);
+  
+  return children(state);
+};
+```
+
+## Hooks Composition
+
+Use hooks composition for reusable logic:
+
+```tsx
+// Example hooks composition
+export const useFormWithToast = (options) => {
+  const form = useForm(options);
+  const toast = useToast();
+  
+  const submitWithToast = async (handler) => {
+    try {
+      await form.handleSubmit(async (data) => {
+        await handler(data);
+        toast.success("Success!");
+      })();
+    } catch (error) {
+      toast.error("An error occurred");
+      console.error(error);
+    }
+  };
+  
+  return { ...form, submitWithToast };
+};
+```
+
+# Commit Guidelines
+
+- Write descriptive commit messages
+- Follow the conventional commits format:
+  - feat: New feature
+  - fix: Bug fix
+  - docs: Documentation changes
+  - style: Code style changes (formatting, etc.)
+  - refactor: Code changes that neither fix bugs nor add features
+  - perf: Performance improvements
+  - test: Add or modify tests
+  - chore: Changes to build process or tools
+- Include ticket/issue numbers in commit messages when applicable
+- Keep commits focused on a single feature or fix
+- Squash multiple related commits before merging to main branch
+
+Remember to maintain consistent branding and user experience according to the project's design guidelines.

@@ -1,0 +1,79 @@
+---
+description: Project overview, tech stack, and architecture guidelines
+globs: **/*
+alwaysApply: false
+---
+# Project Overview and Tech Stack
+
+This is a modern web application built with Next.js, leveraging the T3 stack pattern for full-stack TypeScript development.
+
+## Tech Stack & Versions
+
+- Next.js 15.2 (App Router) with React 18.3.1
+- TypeScript 5.5.3+
+- Tailwind CSS for styling with shadcn/ui components and Tremor
+- API Strategy: tRPC
+- Database ORM: Drizzle with PostgreSQL (hosted on Neon.tech)
+- Authentication: Clerk
+- Form Handling: React Hook Form with Zod validation
+- File Storage: UploadThing
+- Data Visualization: Nivo, Recharts
+- Deployment target: Vercel
+
+## Project Structure
+
+- /src/app/ - Next.js App Router pages and layouts
+  - /features/ - Feature-specific pages
+  - /dashboard/ - Analytics and dashboard pages
+  - /account/ - Account management pages
+  - /(auth)/ - Auth-related routes (sign-in, sign-up)
+  - /admin/ - Admin-specific routes
+  - /settings/ - User and app settings
+  - layout.tsx - Root layout with providers and global components
+  - not-found.tsx - Custom 404 page
+  - page.tsx - Homepage
+- /src/components/ - Reusable UI components
+  - /ui/ - Base UI components (shadcn/ui)
+  - /features/ - Feature-specific components
+  - /dashboard/ - Dashboard and analytics components
+  - /forms/ - Form components and validation schemas
+  - /layouts/ - Layout components including headers, footers, sidebars
+  - /modals/ - Modal and dialog components
+- /src/server/ - Backend code
+  - /api/ - API definitions and routers
+  - /db/ - Database schema and connections
+  - /scripts/ - Database and utility scripts
+  - /actions/ - Server actions
+  - /auth/ - Authentication utilities
+- /src/lib/ - Utility functions
+  - /utils.ts - General utility functions
+  - /validators.ts - Data validation functions
+  - /constants.ts - Application constants
+  - /feature-utils.ts - Feature-specific utilities
+- /src/types/ - TypeScript type definitions
+  - /index.ts - Shared type definitions
+  - /feature.ts - Feature-specific types
+- /src/styles/ - Global CSS and Tailwind configuration
+- /src/hooks/ - Custom React hooks
+- /src/trpc/ - tRPC client configuration
+- /src/providers/ - Context providers
+- /public/ - Static assets
+
+## File Structure Patterns
+
+- Pages: 
+  - page.tsx files for route pages
+  - Nested directory structure for dynamic routes
+  - Use route groups for logical separation (e.g., (auth), (dashboard))
+- Components:
+  - One component per file
+  - Index files for exporting multiple components from a directory
+  - File name should match component name in PascalCase (e.g., FeatureCard → FeatureCard.tsx)
+- Layout files:
+  - layout.tsx for page layouts
+  - templates for repeated page structures
+  - Dedicated error.tsx and loading.tsx files for corresponding states
+- Data Fetching:
+  - tRPC queries and mutations for data operations
+  - React Query hooks for client-side state management
+  - Server components for initial data loading

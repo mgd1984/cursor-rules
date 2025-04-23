@@ -1,0 +1,87 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Next.js Application Ruleset Overview
+
+## Architecture & Structure
+- NextJS 15.2 App Router + React 18.3.1 + TypeScript 5.5.3
+- tRPC for API, Drizzle with PostgreSQL, Clerk for auth
+- Project organization:
+  - `/src/app/` - Next.js App Router pages and layouts
+  - `/src/components/` - Reusable UI components
+  - `/src/server/` - Backend code (API, database, auth)
+  - `/src/lib/` - Utility functions
+  - `/src/types/` - TypeScript type definitions
+  - `/src/hooks/` - Custom React hooks
+  - `/src/trpc/` - tRPC client configuration
+  - `/src/providers/` - Context providers
+
+## Data & State Management
+- tRPC with React Query for client data fetching
+  - Structured query keys and invalidation patterns
+  - Type inference with RouterInputs and RouterOutputs
+  - Custom hooks for data operations
+- Server components use direct API calls with RSC pattern
+- React Context providers for shared application state
+- Dedicated hooks to access context (e.g., `useCurrentUser()`)
+- useReducer for complex state logic
+- Form state managed with React Hook Form + Zod validation
+
+## Component Patterns
+- Compound components for related UI elements
+- Render props for flexible component APIs
+- Custom hooks composition for reusable logic
+- Error handling with try/catch blocks and ErrorBoundary
+- Toast notifications for user feedback
+- Loading, error, and empty states explicitly handled
+- React Suspense boundaries for loading states in RSC
+
+## Styling & UI
+- Tailwind CSS with shadcn/ui components and Tremor
+- Utility classes organized by category in className strings
+- clsx/cn utility for conditional classes
+- Responsive design with Tailwind's responsive prefixes
+- Customized color scheme in tailwind.config.js
+- Extract common patterns into reusable components
+
+## Naming Conventions
+- Components: PascalCase (e.g., `FeatureCard`)
+- Type/Interface: PascalCase (e.g., `UserData`)
+- Component files: PascalCase (e.g., `FeatureCard.tsx`)
+- Utility files: kebab-case (e.g., `dom-utils.ts`)
+- Hooks: camelCase with "use" prefix (e.g., `useFeature`)
+- Variables/Functions: camelCase (e.g., `getUserProfile`)
+- API endpoints: camelCase (e.g., `getData`)
+- Database tables/columns: snake_case (e.g., `user_profiles`)
+- Constants: SCREAMING_SNAKE_CASE (e.g., `MAX_ITEMS`)
+- Boolean props: Prefix with "is/has/should" (e.g., `isLoading`)
+
+## Performance Optimization
+- Next.js image optimization
+- Pagination for large datasets
+- React.memo for pure components that render often
+- useMemo/useCallback for expensive operations
+- Debouncing for user inputs
+- Windowing (react-window/react-virtualized) for long lists
+- Skeleton loaders for content loading
+- Lazy loading for heavy components
+- Suspense boundaries for asynchronous content
+
+## Developer Workflow
+- Focus on code relevant to current task only
+- Break complex tasks into logical stages
+- Generate plans for major features
+- Track progress in dedicated files
+- Detailed commit messages
+- Write thorough tests for all functionality
+
+## Cross-Reference Guide
+- See [Project Overview](mdc:.cursor/rules/architecture/001-project-overview.mdc) for tech stack details
+- See [Data State Management](mdc:.cursor/rules/memory/001-data-state.mdc) for data fetching patterns
+- See [Advanced Patterns](mdc:.cursor/rules/memory/002-advanced-patterns.mdc) for component patterns
+- See [Error Handling](mdc:.cursor/rules/errors/001-errors.mdc) for error strategies
+- See [Naming & Tailwind](mdc:.cursor/rules/preferences/003-naming-tailwind.mdc) for styling practices
+- See [Performance](mdc:.cursor/rules/performance/001-performance.mdc) for optimization techniques
+- See [Workflow Preferences](mdc:.cursor/rules/workflow/001-workflow-preferences.mdc) for process preferences

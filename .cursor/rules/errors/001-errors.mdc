@@ -1,0 +1,46 @@
+---
+description: Error handling strategies and form implementation patterns
+globs: **/*.ts, **/*.tsx, **/forms/**, **/components/**
+alwaysApply: false
+---
+# Error Handling
+
+- Use try/catch blocks for error handling
+- Provide informative error messages to users
+- Implement a global error boundary to catch unexpected errors
+- Create a consistent error display component:
+
+```tsx
+// Example error component
+export const ErrorMessage = ({ error }: { error: string | null }) => {
+  if (!error) return null;
+  return (
+    <div className="text-red-600 bg-red-50 p-3 rounded border border-red-200 mt-2">
+      <p className="text-sm">{error}</p>
+    </div>
+  );
+};
+```
+
+- Log errors to the server for debugging
+- Use toast notifications for user feedback on actions:
+
+```tsx
+// Example toast pattern
+const handleSubmit = async (data) => {
+  try {
+    await api.createItem(data);
+    toast.success("Item created successfully");
+    router.push("/items");
+  } catch (error) {
+    toast.error("Failed to create item");
+    console.error(error);
+  }
+};
+```
+
+- Create dedicated error states for different error types
+- Handle validation errors separately from server errors
+- Provide graceful fallbacks for failed operations
+
+

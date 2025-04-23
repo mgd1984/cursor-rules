@@ -1,0 +1,18 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Accessibility
+
+- Use semantic HTML elements
+- Implement ARIA attributes for custom interactive components
+- Ensure keyboard navigation works correctly
+- Use appropriate heading hierarchy (h1, h2, etc.)
+- Provide sufficient color contrast (at least 4.5:1 for normal text)
+- Include focus states for interactive elements
+- Use form labels for all form controls
+- Test with screen readers
+- Implement skip links for keyboard users
+- Use proper button elements for interactive controls
+

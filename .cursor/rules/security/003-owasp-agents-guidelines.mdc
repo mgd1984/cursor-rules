@@ -1,0 +1,86 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# OWASP Agents Checklist
+
+## Memory Poisoning
+**Description:** Prevent memory poisoning attacks by implementing validation, session isolation, and anomaly detection.
+**Severity:** High
+**Mitigation:**
+- Enforce memory content validation.
+- Implement session-based isolation for short-term memory.
+- Use AI-generated memory snapshots for forensic rollback.
+
+## Tool Misuse
+**Description:** Prevent AI tool misuse by restricting execution privileges and monitoring tool invocations.
+**Severity:** Critical
+**Mitigation:**
+- Restrict AI tool access with granular permissions.
+- Monitor AI tool usage patterns and validate function calls.
+- Enforce execution logs and anomaly detection for tool usage.
+
+## Privilege Compromise
+**Description:** Mitigate unauthorized privilege escalation in AI agents.
+**Severity:** High
+**Mitigation:**
+- Implement strict RBAC and ABAC for agent permissions.
+- Dynamically validate access requests in real-time.
+- Restrict cross-agent privilege delegation.
+
+## Cascading Hallucinations
+**Description:** Prevent cascading misinformation from propagating across AI agents.
+**Severity:** High
+**Mitigation:**
+- Implement multi-source validation and probabilistic truth-checking.
+- Require secondary validation before using AI-generated knowledge.
+- Deploy feedback loops to correct AI knowledge errors.
+
+## Intent Manipulation
+**Description:** Prevent AI agent goal manipulation and misaligned behaviors.
+**Severity:** Critical
+**Mitigation:**
+- Apply behavioral constraints on agent autonomy.
+- Enforce AI reasoning validation before executing critical tasks.
+- Deploy AI auditing tools to detect deviations in behavior.
+
+## Identity Spoofing
+**Description:** Prevent AI identity spoofing and unauthorized impersonation.
+**Severity:** High
+**Mitigation:**
+- Enforce cryptographic identity verification for AI agents.
+- Deploy continuous monitoring for impersonation attempts.
+- Use behavioral profiling to detect anomalies in AI activity.
+
+## Agent Communication Poisoning
+**Description:** Prevent manipulation of multi-agent system communications.
+**Severity:** Critical
+**Mitigation:**
+- Use cryptographic message authentication for inter-agent communications.
+- Monitor inter-agent interactions for anomalies.
+- Require multi-agent consensus verification for high-risk operations.
+
+## Rogue Agents
+**Description:** Prevent unauthorized AI agents from executing malicious actions.
+**Severity:** High
+**Mitigation:**
+- Restrict AI autonomy using strict policy constraints.
+- Enforce continuous behavioral monitoring.
+- Implement controlled hosting environments with strict access control.
+
+## Human Manipulation
+**Description:** Prevent AI-driven manipulation of human users.
+**Severity:** High
+**Mitigation:**
+- Monitor AI interactions for deceptive behaviors.
+- Restrict tool access to limit attack surface.
+- Deploy validation mechanisms for AI-generated outputs.
+
+## Resource Overload
+**Description:** Mitigate AI system resource exhaustion and degradation attacks.
+**Severity:** Medium
+**Mitigation:**
+- Deploy adaptive resource scaling mechanisms.
+- Monitor system load in real-time for overload attempts.
+- Implement AI rate-limiting policies to restrict excessive task execution.
