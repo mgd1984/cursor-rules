@@ -6,7 +6,7 @@ alwaysApply: false
 # Data Fetching
 
 - Use tRPC with React Query for data fetching in client components
-- Structure API queries and mutations according to entity types (locations, inspections, roof elements, etc.)
+- Structure API queries and mutations according to entity types (users, products, features, etc.)
 - Follow these patterns for client data fetching:
   - Define query keys in a structured manner (e.g., ['feature-access', featureKey])
   - Implement query invalidation for data mutations
@@ -50,9 +50,9 @@ const createPost = api.post.create.useMutation({
 
 ```ts
 // Example server component data fetching
-async function fetchSubscriptionData(organizationId: string) {
+async function fetchSubscriptionData(userId: string) {
   try {
-    const response = await getOrganizationSubscription(organizationId);
+    const response = await getUserSubscription(userId);
     // Process data...
     return subscriptionData;
   } catch (error) {
@@ -70,21 +70,21 @@ async function fetchSubscriptionData(organizationId: string) {
 
 - Use React's useState for component-local state
 - Use React Context via providers for shared application state:
-  - `OrganizationProvider` for organization data
-  - Create custom hooks to access context (e.g., `useOrganizationId()`)
+  - `UserProvider` for user data
+  - Create custom hooks to access context (e.g., `useUserId()`)
 - For complex custom hooks, follow this pattern:
 
 ```ts
-export function useAgent(options?: UseAgentOptions): UseAgentReturn {
+export function useDataFetcher(options?: UseDataFetcherOptions): UseDataFetcherReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [data, setData] = useState<AgentResponse | null>(null);
+  const [data, setData] = useState<DataResponse | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   
   // Request ref for cancellation
   const requestRef = useRef<boolean>(false);
 
-  const runQuery = async (request: AgentRequest) => {
+  const runQuery = async (request: DataRequest) => {
     setIsLoading(true);
     setError(null);
     
